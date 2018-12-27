@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
-using UnityEngine.SceneManagement;
-using IllusionPlugin;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
-using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using IllusionPlugin;
 
 namespace BeatSaberStreamInfo
 {
@@ -36,6 +36,14 @@ namespace BeatSaberStreamInfo
 
         private bool overlayEnabled = false;
 
+        public static void Log(object message)
+        {
+            //string fullMsg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.FFF}] [StreamInfo] {message}";
+            string fullMsg = $"[StreamInfo] {message}";
+            Console.WriteLine(fullMsg);
+            //Debug.Log(fullMsg);
+        }
+
         public void OnApplicationStart()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
@@ -52,7 +60,7 @@ namespace BeatSaberStreamInfo
             {
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
-                    Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
+                    Log(s + ".txt not found. Creating file...");
                     if (s == "overlaydata")
                         File.WriteAllLines(Path.Combine(dir, s + ".txt"), new[] { "567,288", "0,40", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19", "0,0" });
                     else
@@ -61,16 +69,16 @@ namespace BeatSaberStreamInfo
             }
             if (ModPrefs.GetBool("StreamInfo", "OverlayEnabled", true, true))
             {
-                Console.WriteLine("[StreamInfo] Launching overlay...");
+                Log("Launching overlay...");
                 overlay = new Overlay();
                 overlay.FormClosed += Overlay_FormClosed;
-                Action overlayjob = delegate { Application.Run(overlay); };
+                Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
                 OverlayTask = new HMTask(overlayjob);
                 OverlayTask.Run();
                 overlay.Refresh();
                 overlayRefreshRate = ModPrefs.GetInt("StreamInfo", "RefreshRate", 100, true);
 
-                Console.WriteLine("[StreamInfo] Overlay started.");
+                Log("Overlay started.");
                 overlayEnabled = true;
             }
         }
@@ -80,24 +88,24 @@ namespace BeatSaberStreamInfo
             {
                 if (arg1.name == "Menu" && InSong)
                 {
-                    Console.WriteLine("[StreamInfo] Exited song scene.");
+                    Log("Exited song scene.");
 
                     InSong = false;
                     StartTask.Cancel();
                     ats = null;
 
-                    Console.WriteLine("[StreamInfo] Ready for next song.");
+                    Log("Ready for next song.");
                 }
                 else if (env.Contains(arg1.name))
                 {
                     StartJob = delegate
                     {
-                        Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
+                        Log("Entered song scene. Initializing...");
                         InSong = true;
                         EnergyReached0 = false;
                         int runID = 1 + songCount++;
 
-                        Console.WriteLine("[StreamInfo] Finding controllers and data...");
+                        Log("Finding controllers and data...");
 
                         GameEnergyCounter energy = null;
                         ScoreController score = null;
@@ -111,14 +119,14 @@ namespace BeatSaberStreamInfo
                             score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
                             setupData = UnityEngine.Resources.FindObjectsOfTypeAll<StandardLevelSceneSetupDataSO>().FirstOrDefault();
                         }
-                        Console.WriteLine("[StreamInfo] Found controllers and data.");
+                        Log("Found controllers and data.");
 
                         bool noFail = false;
 
                         info.SetDefault();
                         if (setupData != null)
                         {
-                            Console.WriteLine("[StreamInfo] Getting song name data...");
+                            Log("Getting song name data...");
                             var level = setupData.difficultyBeatmap.level;
 
                             _songName = level.songName;
@@ -131,7 +139,7 @@ namespace BeatSaberStreamInfo
 
                             noFail = setupData.gameplayCoreSetupData.gameplayModifiers.noFail;
                         }
-                        Console.WriteLine("[StreamInfo] Hooking Events...");
+                        Log("Hooking Events...");
                         if (score != null)
                         {
                             score.comboDidChangeEvent += OnComboChange;
@@ -150,7 +158,7 @@ namespace BeatSaberStreamInfo
                             EnergyReached0 = true;
                             info.energy = -3; 
                         }
-                        Console.WriteLine("[StreamInfo] Starting update loop...");
+                        Log("Starting update loop...");
                         while (InSong && overlayEnabled && runID == songCount)
                         {
                             if (ats != null)
@@ -170,7 +178,7 @@ namespace BeatSaberStreamInfo
                             }
                             Thread.Sleep(overlayRefreshRate);
                         }
-                        Console.WriteLine("[SongInfo] Thread completed: " + runID);
+                        Log("Thread completed: " + runID);
 
                     };
                     StartTask = new HMTask(StartJob);
