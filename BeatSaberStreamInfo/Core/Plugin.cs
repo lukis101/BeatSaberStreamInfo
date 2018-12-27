@@ -16,7 +16,6 @@ namespace BeatSaberStreamInfo
         
         private AudioTimeSyncController ats;
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
-        private readonly string[] env = { "DefaultEnvironment", "BigMirrorEnvironment", "TriangleEnvironment", "NiceEnvironment" };
 
         private bool InSong;
         private bool EnergyReached0;
@@ -96,7 +95,7 @@ namespace BeatSaberStreamInfo
 
                     Log("Ready for next song.");
                 }
-                else if (env.Contains(arg1.name))
+                else if (arg1.name == "GameCore")
                 {
                     StartJob = delegate
                     {
