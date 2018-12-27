@@ -8,6 +8,7 @@ namespace BeatSaberStreamInfo
 {
     class SongInfo
     {
+        public string full_name { get; set; }
         public int combo { get; set; }
         public int multiplier { get; set; }
         public int notes_hit { get; set; }
@@ -24,6 +25,8 @@ namespace BeatSaberStreamInfo
         {
             switch (s.ToLower())
             {
+                case "full_name":
+                    return full_name;
                 case "combo":
                     return combo.ToString();
                 case "multiplier":
@@ -48,6 +51,7 @@ namespace BeatSaberStreamInfo
 
         public void SetDefault()
         {
+            full_name = "----";
             combo = 0;
             multiplier = 1;
             notes_hit = 0;

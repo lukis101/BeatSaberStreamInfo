@@ -46,6 +46,7 @@ namespace BeatSaberStreamInfo
             panel_multiplier.Location = new Point(int.Parse(pos[5].Split(',')[0]), int.Parse(pos[5].Split(',')[1]));
             panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
             panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
+            panel_songname.Location = new Point(int.Parse(pos[8].Split(',')[0]), int.Parse(pos[8].Split(',')[1]));
 
             label_multiplier.Font = new Font(MainFont, 50);
             label_score.Font = new Font(MainFont, 30);
@@ -60,6 +61,7 @@ namespace BeatSaberStreamInfo
             label_scoretext.Font = new Font(MainFont, 15);
             label_multitext.Font = new Font(MainFont, 15);
 
+            label_songname.Font = new Font(MainFont, 20);
             label_energy.Font = new Font(MainFont, 18);
 
             Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
@@ -77,7 +79,8 @@ namespace BeatSaberStreamInfo
                 panel_time.Location.X + "," + panel_time.Location.Y,
                 panel_multiplier.Location.X + "," + panel_multiplier.Location.Y,
                 panel_score.Location.X + "," + panel_score.Location.Y,
-                panel_combo.Location.X + "," + panel_combo.Location.Y
+                panel_combo.Location.X + "," + panel_combo.Location.Y,
+                panel_songname.Location.X + "," + panel_songname.Location.Y
             };
             File.WriteAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"), lines);
         }
@@ -110,7 +113,7 @@ namespace BeatSaberStreamInfo
         {
             Close();
         }
-        public void UpdateText(string multiplier, string score, int maxscore, string progress, string combo, string notes, string energy)
+        public void UpdateText(string songname, string multiplier, string score, int maxscore, string progress, string combo, string notes, string energy)
         {
             int percent = Convert.ToInt32(energy);
             energy = "HP  (" + percent + "%)  ";
@@ -135,7 +138,8 @@ namespace BeatSaberStreamInfo
             string perc = (Mathf.Clamp(acc, 0.0f, 1.0f) * 100.0f).ToString("F1") + "%";
             if (maxscore == 0)
                 perc = "0%";
-            
+
+            label_songname.Text = songname;
             label_multiplier.Text = multiplier + "x";
             label_score.Text = score;
             label_progress.Text = progress;
@@ -150,12 +154,14 @@ namespace BeatSaberStreamInfo
             string scoreAlign = ModPrefs.GetString("StreamInfo", "AlignScore", "Center", true);
             string timeAlign = ModPrefs.GetString("StreamInfo", "AlignTime", "Center", true);
             string accuracyAlign = ModPrefs.GetString("StreamInfo", "AlignAccuracy", "Center", true);
+            string songnameAlign = ModPrefs.GetString("StreamInfo", "AlignSongName", "Center", true);
 
             ContentAlignment multi = ContentAlignment.MiddleCenter;
             ContentAlignment combo = ContentAlignment.MiddleCenter;
             ContentAlignment score = ContentAlignment.MiddleCenter;
             ContentAlignment time = ContentAlignment.MiddleCenter;
             ContentAlignment accuracy = ContentAlignment.MiddleCenter;
+            ContentAlignment songname = ContentAlignment.MiddleCenter;
 
             if (multiAlign.ToLower() == "left")
                 multi = ContentAlignment.MiddleLeft;
@@ -182,6 +188,11 @@ namespace BeatSaberStreamInfo
             else if (accuracyAlign.ToLower() == "right")
                 accuracy = ContentAlignment.MiddleRight;
 
+            if (songnameAlign.ToLower() == "left")
+                songname = ContentAlignment.MiddleLeft;
+            else if (songnameAlign.ToLower() == "right")
+                songname = ContentAlignment.MiddleRight;
+
             label_multiplier.TextAlign = multi;
             label_score.TextAlign = score;
             label_progress.TextAlign = time;
@@ -194,6 +205,7 @@ namespace BeatSaberStreamInfo
             label_accuracy.TextAlign = accuracy;
             label_scoretext.TextAlign = score;
             label_multitext.TextAlign = multi;
+            label_songname.TextAlign = songname;
         }
         private void RunAction(string act)
         {
@@ -227,7 +239,7 @@ namespace BeatSaberStreamInfo
         }
         private void MenuReset(object sender, EventArgs e)
         {
-            string[] pos = { "567,288", "0,0", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19" };
+            string[] pos = { "567,288", "0,40", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19", "0,0" };
             File.WriteAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"), pos);
 
             panel_energy.Location = new Point(int.Parse(pos[2].Split(',')[0]), int.Parse(pos[2].Split(',')[1]));
@@ -236,6 +248,7 @@ namespace BeatSaberStreamInfo
             panel_multiplier.Location = new Point(int.Parse(pos[5].Split(',')[0]), int.Parse(pos[5].Split(',')[1]));
             panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
             panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
+            panel_songname.Location = new Point(int.Parse(pos[8].Split(',')[0]), int.Parse(pos[8].Split(',')[1]));
         }
 
         private static string GetRank(int score, float acc, int maxscore)
@@ -271,13 +284,33 @@ namespace BeatSaberStreamInfo
             return "E";
         }
 
+        Point p_songname = new Point(0, 0);
         Point p_multiplier = new Point(0,0);
         Point p_combo = new Point(0, 0);
         Point p_score = new Point(0, 0);
         Point p_accuracy = new Point(0, 0);
         Point p_time = new Point(0, 0);
         Point p_energy = new Point(0, 0);
-        
+
+        private void panel_songname_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                p_songname.X = e.X;
+                p_songname.Y = e.Y;
+                panel_songname.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_songname_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_songname.Location = new Point(e.X - p_songname.X + panel_songname.Location.X, e.Y - p_songname.Y + panel_songname.Location.Y);
+                p_songname = new Point(0, 0);
+                panel_songname.BorderStyle = BorderStyle.None;
+            }
+        }
+   
         private void panel_multiplier_MouseDown(object sender, MouseEventArgs e)
         {
             if (!locked)

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Overlay));
+            this.label_songname = new System.Windows.Forms.Label();
             this.label_energy = new System.Windows.Forms.Label();
             this.label_notes = new System.Windows.Forms.Label();
             this.label_progress = new System.Windows.Forms.Label();
@@ -41,11 +42,13 @@
             this.label_multitext = new System.Windows.Forms.Label();
             this.panel_combo = new System.Windows.Forms.Panel();
             this.label_combotext = new System.Windows.Forms.Label();
+            this.panel_songname = new System.Windows.Forms.Panel();
             this.panel_score = new System.Windows.Forms.Panel();
             this.panel_multiplier = new System.Windows.Forms.Panel();
             this.panel_time = new System.Windows.Forms.Panel();
             this.panel_accuracy = new System.Windows.Forms.Panel();
             this.panel_energy = new System.Windows.Forms.Panel();
+            this.panel_songname.SuspendLayout();
             this.panel_combo.SuspendLayout();
             this.panel_score.SuspendLayout();
             this.panel_multiplier.SuspendLayout();
@@ -53,6 +56,23 @@
             this.panel_accuracy.SuspendLayout();
             this.panel_energy.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // panel_songname
+            // 
+            this.label_songname.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.label_songname.BackColor = System.Drawing.Color.Transparent;
+            this.label_songname.Font = new System.Drawing.Font("Teko", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_songname.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label_songname.Location = new System.Drawing.Point(3, 7);
+            this.label_songname.Margin = new System.Windows.Forms.Padding(0);
+            this.label_songname.Name = "label_songname";
+            this.label_songname.Size = new System.Drawing.Size(499, 36);
+            this.label_songname.TabIndex = 22;
+            this.label_songname.Text = "Song";
+            this.label_songname.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_songname.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
+            this.label_songname.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_songname_MouseDown);
+            this.label_songname.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_songname_MouseUp);
             // 
             // label_energy
             // 
@@ -221,6 +241,19 @@
             this.label_multitext.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseDown);
             this.label_multitext.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseUp);
             // 
+            // panel_songname
+            // 
+            this.panel_songname.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.panel_songname.BackColor = System.Drawing.Color.Transparent;
+            this.panel_songname.Controls.Add(this.label_songname);
+            this.panel_songname.Location = new System.Drawing.Point(78, 198);
+            this.panel_songname.Name = "panel_songname";
+            this.panel_songname.Size = new System.Drawing.Size(508, 51);
+            this.panel_songname.TabIndex = 21;
+            this.panel_songname.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
+            this.panel_songname.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_songname_MouseDown);
+            this.panel_songname.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_songname_MouseUp);
+            // 
             // panel_combo
             // 
             this.panel_combo.Anchor = System.Windows.Forms.AnchorStyles.None;
@@ -328,6 +361,7 @@
             this.BackColor = System.Drawing.Color.Black;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(550, 250);
+            this.Controls.Add(this.panel_songname);
             this.Controls.Add(this.panel_energy);
             this.Controls.Add(this.panel_combo);
             this.Controls.Add(this.panel_score);
@@ -344,6 +378,7 @@
             this.ResizeEnd += new System.EventHandler(this.Overlay_ResizeEnd);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Overlay_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
+            this.panel_songname.ResumeLayout(false);
             this.panel_combo.ResumeLayout(false);
             this.panel_score.ResumeLayout(false);
             this.panel_multiplier.ResumeLayout(false);
@@ -356,6 +391,7 @@
 
         #endregion
 
+        private System.Windows.Forms.Label label_songname;
         private System.Windows.Forms.Label label_energy;
         private System.Windows.Forms.Label label_notes;
         private System.Windows.Forms.Label label_progress;
@@ -366,6 +402,7 @@
         private System.Windows.Forms.Label label_accuracy;
         private System.Windows.Forms.Label label_scoretext;
         private System.Windows.Forms.Label label_multitext;
+        private System.Windows.Forms.Panel panel_songname;
         private System.Windows.Forms.Panel panel_combo;
         private System.Windows.Forms.Panel panel_score;
         private System.Windows.Forms.Panel panel_accuracy;

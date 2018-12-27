@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine.SceneManagement;
 using IllusionPlugin;
-using IllusionInjector;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,7 +12,7 @@ namespace BeatSaberStreamInfo
     public class Plugin : IPlugin
     {
         public string Name => "Beat Saber Stream Info";
-        public string Version => "1.0.1";
+        public string Version => "1.1.0";
         
         private AudioTimeSyncController ats;
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
@@ -21,7 +20,6 @@ namespace BeatSaberStreamInfo
 
         private bool InSong;
         private bool EnergyReached0;
-        private bool BailOutInstalled;
         public static int overlayRefreshRate;
         private SongInfo info;
         private Action StartJob;
@@ -43,12 +41,6 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-            BailOutInstalled = PluginManager.Plugins.Any(p => p.Name.Contains("Bail") && p.Name.Contains("Out") && p.Name.Contains("Mode"));
-            if (BailOutInstalled)
-                Console.WriteLine("[StreamInfo] BailOut plugin found.");
-            else
-                Console.WriteLine("[StreamInfo] BailOut plugin not found.");
-
             info = new SongInfo();
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
@@ -57,14 +49,16 @@ namespace BeatSaberStreamInfo
                 Directory.CreateDirectory(dir);
 
             foreach (string s in new[] { "SongName", "overlaydata" })
+            {
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
                     if (s == "overlaydata")
-                        File.WriteAllLines(Path.Combine(dir, s + ".txt"), new[] { "567,288", "0,0", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19" });
+                        File.WriteAllLines(Path.Combine(dir, s + ".txt"), new[] { "567,288", "0,40", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19", "0,0" });
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
+            }
             if (ModPrefs.GetBool("StreamInfo", "OverlayEnabled", true, true))
             {
                 Console.WriteLine("[StreamInfo] Launching overlay...");
@@ -107,7 +101,7 @@ namespace BeatSaberStreamInfo
 
                         GameEnergyCounter energy = null;
                         ScoreController score = null;
-                        MainGameSceneSetupData setupData = null;
+                        StandardLevelSceneSetupDataSO setupData = null;
 
                         while (ats == null || energy == null || score == null || setupData == null)
                         {
@@ -115,25 +109,27 @@ namespace BeatSaberStreamInfo
                             ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
                             energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                             score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
-                            setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
+                            setupData = UnityEngine.Resources.FindObjectsOfTypeAll<StandardLevelSceneSetupDataSO>().FirstOrDefault();
                         }
                         Console.WriteLine("[StreamInfo] Found controllers and data.");
 
                         bool noFail = false;
 
+                        info.SetDefault();
                         if (setupData != null)
                         {
                             Console.WriteLine("[StreamInfo] Getting song name data...");
-                            var level = setupData.difficultyLevel.level;
+                            var level = setupData.difficultyBeatmap.level;
 
                             _songName = level.songName;
                             _songSub = level.songSubName;
                             _songAuthor = level.songAuthorName;
 
                             string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
+                            info.full_name = songname;
                             File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
 
-                            noFail = setupData.gameplayOptions.noEnergy;
+                            noFail = setupData.gameplayCoreSetupData.gameplayModifiers.noFail;
                         }
                         Console.WriteLine("[StreamInfo] Hooking Events...");
                         if (score != null)
@@ -147,10 +143,8 @@ namespace BeatSaberStreamInfo
                         if (energy != null)
                         {
                             energy.gameEnergyDidChangeEvent += OnEnergyChange;
-                            if (!BailOutInstalled)
-                                energy.gameEnergyDidReach0Event += OnEnergyFail;
+                            energy.gameEnergyDidReach0Event += OnEnergyFail;
                         }
-                        info.SetDefault();
                         if (noFail)
                         {
                             EnergyReached0 = true;
@@ -165,7 +159,8 @@ namespace BeatSaberStreamInfo
                                 string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                                 string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
 
-                                overlay.UpdateText(info.GetVal("multiplier"),
+                                overlay.UpdateText(info.full_name,
+                                        info.GetVal("multiplier"),
                                         info.GetVal("score"),
                                         ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
                                         time + " / " + totaltime + " (" + percent + "%)",
@@ -213,12 +208,7 @@ namespace BeatSaberStreamInfo
         }
         private void OnEnergyChange(float f)
         {
-            if (BailOutInstalled && BailOutEnabled() && BailedOut())
-            {
-                EnergyReached0 = true;
-                info.energy = -1;
-            }
-            else if (!EnergyReached0)
+            if (!EnergyReached0)
             {
                 if (f > 0)
                     info.energy = (int)(f * 100);
@@ -242,15 +232,6 @@ namespace BeatSaberStreamInfo
         {
             overlay = null;
             overlayEnabled = false;
-        }
-
-        private bool BailedOut()
-        {
-            return BailOutModePlugin.BailedOut;
-        }
-        private bool BailOutEnabled()
-        {
-            return BailOutModePlugin.shouldIBail;
         }
 
         public void OnApplicationQuit()
